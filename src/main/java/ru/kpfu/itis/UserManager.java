@@ -10,17 +10,14 @@ import java.sql.SQLException;
 
 public class UserManager {
 
-    private static final String URL = "jdbc:postgresql://localhost:5432/your_database";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "";
+    private static final Connection conn = DatabaseConnectionUtil.getConnection();
 
-    public static boolean validateUser (String login, String password) {
+    public static boolean validateUser(String login, String password) {
         String sql = "SELECT password FROM users WHERE username = ?";
         String hashedPassword = null;
 
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+        try {
+             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, login);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -36,14 +33,17 @@ public class UserManager {
         return false;
     }
 
-    public static boolean addUser(String login, String password) {
+    public static boolean addUser (String username, String password) {
+        if (username == null || username.isEmpty()) {
+            throw new IllegalArgumentException("Username cannot be null or empty");
+        }
+
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+        String sql = "INSERT INTO users(username, password) VALUES (?, ?)";
 
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, login);
+        try {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, username);
             stmt.setString(2, hashedPassword);
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
@@ -52,15 +52,16 @@ public class UserManager {
             return false;
         }
     }
+
     static void logAuthAttempt(String username, boolean success) {
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
-            String sql = "INSERT INTO auth (username, success) VALUES (?, ?)";
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, username);
-                stmt.setBoolean(2, success);
-                stmt.executeUpdate();
-            }
+        String sql = "INSERT INTO auth(username, success) VALUES (?, ?)";
+        try{
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, username);
+            stmt.setBoolean(2, success);
+            stmt.executeUpdate();
         } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 }
