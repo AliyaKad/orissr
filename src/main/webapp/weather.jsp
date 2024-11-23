@@ -10,11 +10,17 @@
     <input type="text" name="city">
     <input type="submit" value="search">
 </form>
-
+<script>
+    $(document).on("click", "#ajax-button", function () {
+            $.get("/ajax/weather", function (response) {
+                $("ajax-response").text(response)
+            })
+        }
+    )
+</script>
 <%
     String weather = (String) request.getAttribute("weather");
     if (weather != null) {
-
 %>
 <pre><%= weather %></pre>
 <%

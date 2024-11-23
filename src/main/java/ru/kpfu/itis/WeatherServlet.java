@@ -17,7 +17,6 @@ public class WeatherServlet extends HttpServlet {
     private static final String API_URL = "http://api.openweathermap.org/data/2.5/weather";
     HttpClientWeather client = new HttpClientWeather(API_KEY);
 
-
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String city = req.getParameter("city");
         String weather = null;
@@ -34,11 +33,18 @@ public class WeatherServlet extends HttpServlet {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode node = objectMapper.readTree(weatherData);
 
-                weather = node.get("main").get("temp").asText();
+                if (node.has("main")) {
+                    weather = node.get("main").get("temp").asText();
+                }
             }
         }
         req.setAttribute("weather", weather);
         req.getRequestDispatcher("/weather.jsp").forward(req, resp);
+        resp.setContentType("text/plain");
+        if (weather != null) {
+            resp.getWriter().write(weather);
+        } else {
+            resp.getWriter().write("Не найдено");
+        }
     }
 }
-
