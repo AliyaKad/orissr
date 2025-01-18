@@ -1,4 +1,4 @@
-package ru.kpfu.itis;
+package ru.itis.inf304.Client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,18 +10,24 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class HttpClientWeather {
-    private static final String API_URL = "https://api.openweathermap.org/data/2.5/weather";
+    private static final String API_URL = "http://api.openweathermap.org/data/2.5/weather";
     private String apiKey;
-
     public HttpClientWeather(String apiKey) {
         this.apiKey = apiKey;
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public static String getUrl() {
+        return API_URL;
     }
 
     public String get(String url, Map<String, String> headers, Map<String, String> params) {
         try {
             StringBuilder urlWithParams = new StringBuilder(url);
             urlWithParams.append("?").append(getParamsString(params));
-
 
             HttpURLConnection connection = (HttpURLConnection) new URL(urlWithParams.toString()).openConnection();
             connection.setRequestMethod("GET");
@@ -62,5 +68,4 @@ public class HttpClientWeather {
         }
         return result.toString();
     }
-
 }
